@@ -18,12 +18,12 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "common/lang/comparator.h"
 #include "common/lang/string.h"
-
-const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans"};
+//my
+const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "dates", "booleans"};
 
 const char *attr_type_to_string(AttrType type)
 {
-  if (type >= UNDEFINED && type <= FLOATS) {
+  if (type >= UNDEFINED && type <= DATES) {//FLOATS//my
     return ATTR_TYPE_NAME[type];
   }
   return "unknown";
@@ -57,7 +57,12 @@ Value::Value(const char *s, int len /*= 0*/)
 {
   set_string(s, len);
 }
-
+Value::Value(const char *date, int len, int flag)//my
+{
+  int intDate = 0;
+  strDate_to_intDate_(date, intDate);
+  set_date(intDate);
+}
 void Value::set_data(char *data, int length)
 {
   switch (attr_type_) {
@@ -76,6 +81,10 @@ void Value::set_data(char *data, int length)
       num_value_.bool_value_ = *(int *)data != 0;
       length_ = length;
     } break;
+    case DATES: {//my
+      num_value_.date_value_= *(int *)data;
+      length_ = length;
+    } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
     } break;
@@ -87,7 +96,12 @@ void Value::set_int(int val)
   num_value_.int_value_ = val;
   length_ = sizeof(val);
 }
-
+void Value::set_date(int val)//my
+{
+  attr_type_ = DATES;
+  num_value_.int_value_ = val;
+  length_ = sizeof(val);
+}
 void Value::set_float(float val)
 {
   attr_type_ = FLOATS;
@@ -127,6 +141,9 @@ void Value::set_value(const Value &value)
     case BOOLEANS: {
       set_boolean(value.get_boolean());
     } break;
+    case DATES: {//my
+      set_date(value.get_date());
+    }break;
     case UNDEFINED: {
       ASSERT(false, "got an invalid value type");
     } break;
@@ -161,6 +178,11 @@ std::string Value::to_string() const
     case CHARS: {
       os << str_value_;
     } break;
+    case DATES: {//my
+      std::string strDate = "";
+      intDate_to_strDate_(num_value_.date_value_, strDate);
+      os << strDate;
+    }break;
     default: {
       LOG_WARN("unsupported attr type: %d", attr_type_);
     } break;
@@ -186,7 +208,10 @@ int Value::compare(const Value &other) const
       } break;
       case BOOLEANS: {
         return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
-      }
+      } break;//my
+      case DATES: {
+        return common::compare_date((void *)&this->num_value_.date_value_,(void *)&other.num_value_.date_value_);
+      }break;
       default: {
         LOG_WARN("unsupported type: %d", this->attr_type_);
       }
@@ -222,10 +247,24 @@ int Value::get_int() const
     case BOOLEANS: {
       return (int)(num_value_.bool_value_);
     }
+    //mymight 增加get_date方法都需要对应进行判断并输出
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
       return 0;
     }
+  }
+  return 0;
+}
+
+int Value::get_date() const
+{
+  switch (attr_type_)
+  {
+  case DATES:
+    return num_value_.int_value_;
+  default:
+    LOG_WARN("unknown data type. type=\d", attr_type_);
+    return 0;
   }
   return 0;
 }
@@ -300,4 +339,79 @@ bool Value::get_boolean() const
     }
   }
   return false;
+}
+
+bool is_leap_year(int year){
+  return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+}
+#include<regex>
+#include<string>
+#include <stdexcept>
+void strDate_to_intDate_(const char* strDate, int& intDate){
+  int year = 0, month = 0, day = 0;
+  int pos = 0;
+
+  // Extract year
+  while (std::isdigit(strDate[pos])) {
+      year = year * 10 + (strDate[pos++] - '0');
+  }
+
+  // Skip non-digits
+  while (!std::isdigit(strDate[pos])) {
+      pos++;
+  }
+
+  // Extract month
+  while (std::isdigit(strDate[pos])) {
+      month = month * 10 + (strDate[pos++] - '0');
+  }
+
+  // Skip non-digits
+  while (!std::isdigit(strDate[pos])) {
+      pos++;
+  }
+
+  // Extract day
+  while (std::isdigit(strDate[pos])) {
+      day = day * 10 + (strDate[pos++] - '0');
+  }
+
+  if (year < 0 || year > 9999) {
+      throw std::invalid_argument("Year out of range (0-9999)");
+  }
+
+  if (month < 1 || month > 12) {
+      throw std::invalid_argument("Invalid month");
+  }
+
+  int days_in_month;
+  if (month == 2) {
+      days_in_month = is_leap_year(year) ? 29 : 28;
+  } else if (month == 4 || month == 6 || month == 9 || month == 11) {
+      days_in_month = 30;
+  } else {
+      days_in_month = 31;
+  }
+
+  if (day < 1 || day > days_in_month) {
+      throw std::invalid_argument("Invalid day");
+  }
+
+  intDate = year * 10000 + month * 100 + day;
+
+}
+#include <sstream>
+void intDate_to_strDate_(const int intDate, std::string& strDate){
+  int year = intDate / 10000;
+  int month = (intDate / 100) % 100;
+  int day = intDate % 100;
+
+  std::stringstream ss;
+  ss << year << "-";//<< "'" 
+  if (month < 10) ss << "0";
+  ss << month << "-";
+  if (day < 10) ss << "0";
+  ss << day ;//<< "'"
+
+  strDate = ss.str();
 }
