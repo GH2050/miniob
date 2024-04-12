@@ -46,6 +46,7 @@ enum class PhysicalOperatorType
   CALC,
   STRING_LIST,
   DELETE,
+  AGGREGATE,//my2 指导书未涉及
   INSERT,
 };
 
