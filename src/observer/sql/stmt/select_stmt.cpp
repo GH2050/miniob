@@ -119,7 +119,8 @@ RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)
         return RC::SCHEMA_FIELD_MISSING;
       }
 
-      query_fields.push_back(Field(table, field_meta));
+      const AggrOp aggregation = relation_attr.aggregation;//my2
+      query_fields.push_back(Field(table, field_meta,aggregation));
     }
   }
 
