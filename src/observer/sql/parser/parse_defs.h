@@ -24,6 +24,20 @@ See the Mulan PSL v2 for more details. */
 class Expression;
 
 /**
+ * @brief 描述聚集运算符
+ * @ingroup SQLParser
+ */
+enum AggrOp //my2
+{
+  AGGR_SUM,     ///< sum
+  AGGR_MIN,
+  AGGR_MAX,
+  AGGR_COUNT,
+  AGGR_AVG,
+  AGGR_NONE
+};
+
+/**
  * @defgroup SQLParser SQL Parser 
  */
 
@@ -38,6 +52,7 @@ struct RelAttrSqlNode
 {
   std::string relation_name;   ///< relation name (may be NULL) 表名
   std::string attribute_name;  ///< attribute name              属性名
+  AggrOp aggregation = AGGR_NONE;  //my2 存储聚合操作,初始化为空
 };
 
 /**

@@ -18,12 +18,12 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "common/lang/comparator.h"
 #include "common/lang/string.h"
-//my
+//my1
 const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "dates", "booleans"};
 
 const char *attr_type_to_string(AttrType type)
 {
-  if (type >= UNDEFINED && type <= DATES) {//FLOATS//my
+  if (type >= UNDEFINED && type <= DATES) {//FLOATS//my1
     return ATTR_TYPE_NAME[type];
   }
   return "unknown";
@@ -57,7 +57,7 @@ Value::Value(const char *s, int len /*= 0*/)
 {
   set_string(s, len);
 }
-Value::Value(const char *date, int len, int flag)//my
+Value::Value(const char *date, int len, int flag)//my1
 {
   int intDate = 0;
   strDate_to_intDate_(date, intDate);
@@ -81,7 +81,7 @@ void Value::set_data(char *data, int length)
       num_value_.bool_value_ = *(int *)data != 0;
       length_ = length;
     } break;
-    case DATES: {//my
+    case DATES: {//my1
       num_value_.date_value_= *(int *)data;
       length_ = length;
     } break;
@@ -96,7 +96,7 @@ void Value::set_int(int val)
   num_value_.int_value_ = val;
   length_ = sizeof(val);
 }
-void Value::set_date(int val)//my
+void Value::set_date(int val)//my1
 {
   attr_type_ = DATES;
   num_value_.int_value_ = val;
@@ -141,7 +141,7 @@ void Value::set_value(const Value &value)
     case BOOLEANS: {
       set_boolean(value.get_boolean());
     } break;
-    case DATES: {//my
+    case DATES: {//my1
       set_date(value.get_date());
     }break;
     case UNDEFINED: {
@@ -178,7 +178,7 @@ std::string Value::to_string() const
     case CHARS: {
       os << str_value_;
     } break;
-    case DATES: {//my
+    case DATES: {//my1
       std::string strDate = "";
       intDate_to_strDate_(num_value_.date_value_, strDate);
       os << strDate;
@@ -208,7 +208,7 @@ int Value::compare(const Value &other) const
       } break;
       case BOOLEANS: {
         return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
-      } break;//my
+      } break;//my1
       case DATES: {
         return common::compare_date((void *)&this->num_value_.date_value_,(void *)&other.num_value_.date_value_);
       }break;
@@ -247,7 +247,7 @@ int Value::get_int() const
     case BOOLEANS: {
       return (int)(num_value_.bool_value_);
     }
-    //mymight 增加get_date方法都需要对应进行判断并输出
+    //my1might 增加get_date方法都需要对应进行判断并输出
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
       return 0;

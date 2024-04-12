@@ -55,6 +55,11 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 
 //标识tokens
 %token  SEMICOLON
+        SUM_F//my2
+        MIN_F
+        MAX_F
+        COUNT_F
+        AVG_F
         CREATE
         DROP
         TABLE
@@ -77,7 +82,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
         INT_T
         STRING_T
         FLOAT_T
-        DATE_T//my05
+        DATE_T//my1
         HELP
         EXIT
         DOT //QUOTE
@@ -105,6 +110,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   ConditionSqlNode *                condition;
   Value *                           value;
   enum CompOp                       comp;
+  enum AggrOp                       aggr;//my2 指导书未提及
   RelAttrSqlNode *                  rel_attr;
   std::vector<AttrInfoSqlNode> *    attr_infos;
   AttrInfoSqlNode *                 attr_info;
@@ -121,7 +127,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 
 %token <number> NUMBER
 %token <floats> FLOAT
-%token <string> DATE_STR//my04
+%token <string> DATE_STR//my1
 %token <string> ID
 %token <string> SSS
 //非终结符
@@ -132,6 +138,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 %type <value>               value
 %type <number>              number
 %type <comp>                comp_op
+%type <aggr>                aggr_op//my2 指导书未提及
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
@@ -342,7 +349,7 @@ type:
     INT_T      { $$=INTS; }
     | STRING_T { $$=CHARS; }
     | FLOAT_T  { $$=FLOATS; }
-    | DATE_T   { $$=DATES; }//my07
+    | DATE_T   { $$=DATES; }//my1
     ;
 insert_stmt:        /*insert   语句的语法解析树*/
     INSERT INTO ID VALUES LBRACE value value_list RBRACE 
@@ -388,7 +395,7 @@ value:
       $$ = new Value(tmp);
       free(tmp);
     }
-    |DATE_STR {//my06
+    |DATE_STR {//my1
       char *tmp = common::substr($1,1,strlen($1)-2);
       $$ = new Value(tmp, strlen(tmp), 1);
       free(tmp);
@@ -529,8 +536,20 @@ rel_attr:
       free($1);
       free($3);
     }
+    | aggr_op LBRACE rel_attr RBRACE {//my2
+      $$ = $3;
+      $$->aggregation = $1;
+    }
     ;
 
+aggr_op://my2
+    SUM_F{ $$ = AGGR_SUM; }
+    |MIN_F{ $$ = AGGR_MIN; }
+    |MAX_F{ $$ = AGGR_MAX; }
+    |COUNT_F{ $$ = AGGR_COUNT; }
+    |AVG_F{ $$ = AGGR_AVG; }
+    ;
+    
 attr_list:
     /* empty */
     {
