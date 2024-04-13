@@ -32,12 +32,12 @@ static void wildcard_fields(Table *table, std::vector<Field> &field_metas, AggrO
   const TableMeta &table_meta = table->table_meta();
   const int field_num = table_meta.field_num();
   for (int i = table_meta.sys_field_num(); i < field_num; i++) {
-    if(aggregation == AggrOp::AGGR_COUNT){
+    if(aggregation == AggrOp::AGGR_COUNT){//my2 重要 ,AggrOp::AGGR_COUNT_ALL
       field_metas.push_back(Field(table,table_meta.field(i),AggrOp::AGGR_COUNT_ALL));
       break; //COUNT只需要输出一列,所以这里之记录了第一个属性进行COUNT即可 //my2
     }
-    else field_metas.push_back(Field(table, table_meta.field(i),AggrOp::AGGR_NONE));
-  }
+    else field_metas.push_back(Field(table, table_meta.field(i),aggregation));
+  }//my2 重要 AggrOp::AGGR_NONE改为aggregation
 }
 
 RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)

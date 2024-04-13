@@ -60,8 +60,8 @@ RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<P
       return create_plan(static_cast<ProjectLogicalOperator &>(logical_operator), oper);
     } break;
 
-    case LogicalOperatorType::Aggregate: {//my2
-      return create_plan(static_cast<ProjectLogicalOperator &>(logical_operator), oper);
+    case LogicalOperatorType::Aggregate: {//my2 //错误
+      return create_plan(static_cast<AggregateLogicalOperator &>(logical_operator), oper);
     } break;
 
     case LogicalOperatorType::INSERT: {

@@ -43,7 +43,7 @@ RC AggregatePhysicalOperator::next()
       AttrType attr_type = AttrType::INTS;
       switch (aggregation) {
         case AggrOp::AGGR_COUNT:
-        //case AggrOp::AGGR_COUNT_ALL:
+        case AggrOp::AGGR_COUNT_ALL:// 错误
           if (count == 0) {
             result_cells.push_back(Value(0));
             LOG_TRACE("init count. count=0");
