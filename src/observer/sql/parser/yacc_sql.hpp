@@ -125,6 +125,7 @@ union YYSTYPE
   enum CompOp                       comp;
   enum AggrOp                       aggr;//my2 指导书未提及
   RelAttrSqlNode *                  rel_attr;
+  //RelAttrSqlNode *                  rel_attr_aggr;//my2  
   std::vector<AttrInfoSqlNode> *    attr_infos;
   AttrInfoSqlNode *                 attr_info;
   Expression *                      expression;
@@ -132,12 +133,13 @@ union YYSTYPE
   std::vector<Value> *              value_list;
   std::vector<ConditionSqlNode> *   condition_list;
   std::vector<RelAttrSqlNode> *     rel_attr_list;
+  //std::vector<RelAttrSqlNode> *     rel_attr_aggr_list;//my2
   std::vector<std::string> *        relation_list;
   char *                            string;
   int                               number;
   float                             floats;
 
-#line 141 "yacc_sql.hpp"
+#line 143 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

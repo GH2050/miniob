@@ -86,3 +86,7 @@ extern const char *strrc(RC rc);
 
 extern bool OB_SUCC(RC rc);
 extern bool OB_FAIL(RC rc);
+
+#include "sql/parser/parse_defs.h"//my2
+#include "common/log/log.h"
+RC aggr_to_string(const AggrOp aggr, std::string &repr);

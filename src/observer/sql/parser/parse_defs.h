@@ -33,6 +33,7 @@ enum AggrOp //my2
   AGGR_MIN,
   AGGR_MAX,
   AGGR_COUNT,
+  AGGR_COUNT_ALL,//MY2
   AGGR_AVG,
   AGGR_NONE
 };
@@ -53,6 +54,7 @@ struct RelAttrSqlNode
   std::string relation_name;   ///< relation name (may be NULL) 表名
   std::string attribute_name;  ///< attribute name              属性名
   AggrOp aggregation = AGGR_NONE;  //my2 存储聚合操作,初始化为空
+  bool valid = true;//my2 用于处理异常情况
 };
 
 /**

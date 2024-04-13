@@ -33,3 +33,34 @@ const char *strrc(RC rc)
 bool OB_SUCC(RC rc) { return rc == RC::SUCCESS; }
 
 bool OB_FAIL(RC rc) { return rc != RC::SUCCESS; }
+
+RC aggr_to_string(const AggrOp aggr, std::string &repr) {
+  RC rc = RC::SUCCESS;
+  switch (aggr) {
+    case AggrOp::AGGR_MAX:
+      repr = "MAX";
+      break;
+    case AggrOp::AGGR_MIN:
+      repr = "MIN";
+      break;
+    case AggrOp::AGGR_COUNT:
+      repr = "COUNT";
+      break;
+    case AggrOp::AGGR_COUNT_ALL:
+      repr = "COUNT(*)";
+      break;
+    case AggrOp::AGGR_AVG:
+      repr = "AVG";
+      break;
+    case AggrOp::AGGR_SUM:
+      repr = "SUM";
+      break;
+    case AggrOp::AGGR_NONE:
+      repr = "";
+      break;
+    default:
+      LOG_WARN("unimplemented aggregation");
+      return RC::UNIMPLENMENT;
+  }
+  return rc;
+}

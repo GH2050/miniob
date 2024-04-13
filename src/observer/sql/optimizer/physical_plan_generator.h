@@ -28,6 +28,7 @@ class DeleteLogicalOperator;
 class ExplainLogicalOperator;
 class JoinLogicalOperator;
 class CalcLogicalOperator;
+class AggregateLogicalOperator;//my2
 
 /**
  * @brief 物理计划生成器
@@ -43,7 +44,8 @@ public:
 
   RC create(LogicalOperator &logical_operator, std::unique_ptr<PhysicalOperator> &oper);
 
-private:
+private://my2 指导书未涉及
+  RC create_plan(AggregateLogicalOperator &aggregate_oper, std::unique_ptr<PhysicalOperator> &oper);
   RC create_plan(TableGetLogicalOperator &logical_oper, std::unique_ptr<PhysicalOperator> &oper);
   RC create_plan(PredicateLogicalOperator &logical_oper, std::unique_ptr<PhysicalOperator> &oper);
   RC create_plan(ProjectLogicalOperator &logical_oper, std::unique_ptr<PhysicalOperator> &oper);

@@ -8,7 +8,7 @@
 
 #include "common/log/log.h"
 #include "common/lang/string.h"
-#include "sql/parser/parse_defs.h"
+#include "sql/parser/parse_defs.h" // 包含RelAttrSqlNode定义
 #include "sql/parser/yacc_sql.hpp"
 #include "sql/parser/lex_sql.h"
 #include "sql/expr/expression.h"
@@ -112,6 +112,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   enum CompOp                       comp;
   enum AggrOp                       aggr;//my2 指导书未提及
   RelAttrSqlNode *                  rel_attr;
+  //RelAttrSqlNode *                  rel_attr_aggr;//my2  
   std::vector<AttrInfoSqlNode> *    attr_infos;
   AttrInfoSqlNode *                 attr_info;
   Expression *                      expression;
@@ -119,6 +120,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   std::vector<Value> *              value_list;
   std::vector<ConditionSqlNode> *   condition_list;
   std::vector<RelAttrSqlNode> *     rel_attr_list;
+  //std::vector<RelAttrSqlNode> *     rel_attr_aggr_list;//my2
   std::vector<std::string> *        relation_list;
   char *                            string;
   int                               number;
@@ -140,6 +142,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 %type <comp>                comp_op
 %type <aggr>                aggr_op//my2 指导书未提及
 %type <rel_attr>            rel_attr
+%type <rel_attr>            rel_attr_aggr//my2 指导书未涉及
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
 %type <value_list>          value_list
@@ -148,6 +151,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 %type <rel_attr_list>       select_attr
 %type <relation_list>       rel_list
 %type <rel_attr_list>       attr_list
+%type <rel_attr_list>       rel_attr_aggr_list
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <sql_node>            calc_stmt
@@ -301,6 +305,7 @@ create_table_stmt:    /*create table 语句的语法解析树*/
 
       if (src_attrs != nullptr) {
         create_table.attr_infos.swap(*src_attrs);
+        delete src_attrs;
       }
       create_table.attr_infos.emplace_back(*$5);
       std::reverse(create_table.attr_infos.begin(), create_table.attr_infos.end());
@@ -358,6 +363,7 @@ insert_stmt:        /*insert   语句的语法解析树*/
       $$->insertion.relation_name = $3;
       if ($7 != nullptr) {
         $$->insertion.values.swap(*$7);
+        delete $7;
       }
       $$->insertion.values.emplace_back(*$6);
       std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
@@ -536,10 +542,27 @@ rel_attr:
       free($1);
       free($3);
     }
-    | aggr_op LBRACE rel_attr RBRACE {//my2
+    | aggr_op LBRACE rel_attr_aggr rel_attr_aggr_list RBRACE{ //my2
       $$ = $3;
       $$->aggregation = $1;
+      // redundant columns
+      if($4 != nullptr){
+        $$->valid = false;
+        delete $4;
+      }
     }
+    | aggr_op LBRACE RBRACE{
+      $$ = new RelAttrSqlNode;
+      $$->relation_name="";
+      $$->attribute_name="";
+      $$->aggregation =$1;
+      // empty columns
+      $$->valid = false;
+    }
+    /* | aggr_op LBRACE rel_attr RBRACE {//my2
+      $$ = $3;
+      $$->aggregation = $1;
+    } */
     ;
 
 aggr_op://my2
@@ -549,7 +572,46 @@ aggr_op://my2
     |COUNT_F{ $$ = AGGR_COUNT; }
     |AVG_F{ $$ = AGGR_AVG; }
     ;
-    
+
+rel_attr_aggr://my2
+    '*' {
+      $$ = new RelAttrSqlNode;
+      $$->relation_name  = "";
+      $$->attribute_name = "*";
+      // attr.relation_name  = ""; // 错误
+      // attr.attribute_name = "*";
+    }
+    | ID { //注意错误
+      $$ = new RelAttrSqlNode;
+      $$->attribute_name = $1;
+      free($1);
+    }
+    | ID DOT ID {
+      $$ = new RelAttrSqlNode;
+      $$->relation_name  = $1;
+      $$->attribute_name = $3;
+      free($1);
+      free($3);
+    }
+    ;
+
+rel_attr_aggr_list://my2 必须声明两次
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | COMMA rel_attr_aggr rel_attr_aggr_list {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<RelAttrSqlNode>;
+      }
+
+      $$->emplace_back(*$2);
+      delete $2;
+    }
+    ;
+
 attr_list:
     /* empty */
     {

@@ -224,18 +224,18 @@ RC PhysicalPlanGenerator::create_plan(AggregateLogicalOperator &aggregate_oper, 
     return rc;
   }
 
-  AggregatePhysicalOperator *aggregate_oper = new AggregatePhysicalOperator;
+  AggregatePhysicalOperator *aggregate_operator = new AggregatePhysicalOperator;
   const vector<Field> &aggregate_fields = aggregate_oper.fields();
   LOG_TRACE("got %d aggregation fields",aggregate_fields.size());
   for (const Field &field : aggregate_fields) {
-    aggregate_oper->add_aggregation(field.aggregation());
+    aggregate_operator->add_aggregation(field.aggregation());
   }
 
   if (child_phy_oper) {
-    aggregate_oper->add_child(std::move(child_phy_oper));
+    aggregate_operator->add_child(std::move(child_phy_oper));
   }
 
-  oper = unique_ptr<PhysicalOperator>(aggregate_oper);
+  oper = unique_ptr<PhysicalOperator>(aggregate_operator);
 
   LOG_TRACE("create a aggregate physical operator");
   return rc;

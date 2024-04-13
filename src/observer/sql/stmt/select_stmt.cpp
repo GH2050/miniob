@@ -27,12 +27,16 @@ SelectStmt::~SelectStmt()
   }
 }
 
-static void wildcard_fields(Table *table, std::vector<Field> &field_metas)
+static void wildcard_fields(Table *table, std::vector<Field> &field_metas, AggrOp aggregation = AggrOp::AGGR_NONE)
 {
   const TableMeta &table_meta = table->table_meta();
   const int field_num = table_meta.field_num();
   for (int i = table_meta.sys_field_num(); i < field_num; i++) {
-    field_metas.push_back(Field(table, table_meta.field(i)));
+    if(aggregation == AggrOp::AGGR_COUNT){
+      field_metas.push_back(Field(table,table_meta.field(i),AggrOp::AGGR_COUNT_ALL));
+      break; //COUNT只需要输出一列,所以这里之记录了第一个属性进行COUNT即可 //my2
+    }
+    else field_metas.push_back(Field(table, table_meta.field(i),AggrOp::AGGR_NONE));
   }
 }
 
@@ -65,18 +69,47 @@ RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)
 
   // collect query fields in `select` statement
   std::vector<Field> query_fields;
+  bool mixa = false;bool mixb = false;//my2
   for (int i = static_cast<int>(select_sql.attributes.size()) - 1; i >= 0; i--) {
     const RelAttrSqlNode &relation_attr = select_sql.attributes[i];
+    const AggrOp aggregation_ = relation_attr.aggregation;
+    bool valid_ = relation_attr.valid;//my2
+    // 出现多个属性或者空的情况 返回错误信息
+    if(!valid_){
+      return RC::INVALID_ARGUMENT;
+    }
+    //判断是否存在如select id, count(age)这样的聚合和单个字段混合的测试语句，如果有则返回FAILURE
+    if(aggregation_ != AggrOp::AGGR_NONE){
+      mixb = true;
+      if(mixa && mixb)
+      return RC::INVALID_ARGUMENT;
+    }else{
+      mixa = true;
+      if(mixa && mixb)
+      return RC::INVALID_ARGUMENT;
+    }
 
     if (common::is_blank(relation_attr.relation_name.c_str()) &&
         0 == strcmp(relation_attr.attribute_name.c_str(), "*")) {
+      
+      // 属性为func(*)或者* 仅有COUNT(*)合法 //my2
+      if(aggregation_ != AggrOp::AGGR_NONE && aggregation_ != AggrOp::AGGR_COUNT){
+        return RC::INVALID_ARGUMENT;
+      }
+
       for (Table *table : tables) {
-        wildcard_fields(table, query_fields);
+        wildcard_fields(table, query_fields,aggregation_);
       }
 
     } else if (!common::is_blank(relation_attr.relation_name.c_str())) {
       const char *table_name = relation_attr.relation_name.c_str();
       const char *field_name = relation_attr.attribute_name.c_str();
+
+      // 错误
+      // // 属性为func(table.*)或者table.*或者func(table.a)或者table.a 仅有COUNT(*)合法 //my2
+      // if(relation_attr.aggregation != AggrOp::AGGR_COUNT){
+      //   return RC::INVALID_ARGUMENT;
+      // }
 
       if (0 == strcmp(table_name, "*")) {
         if (0 != strcmp(field_name, "*")) {
@@ -95,7 +128,11 @@ RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)
 
         Table *table = iter->second;
         if (0 == strcmp(field_name, "*")) {
-          wildcard_fields(table, query_fields);
+          // 属性为func(table.*)或者table.*或者func(table.a)或者table.a 仅有COUNT(*)合法 //my2
+          if(relation_attr.aggregation != AggrOp::AGGR_COUNT){
+            return RC::INVALID_ARGUMENT;
+          }//my2
+          wildcard_fields(table, query_fields,aggregation_);
         } else {
           const FieldMeta *field_meta = table->table_meta().field(field_name);
           if (nullptr == field_meta) {
@@ -107,6 +144,9 @@ RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)
         }
       }
     } else {
+
+      // 属性为func(a)或者a
+
       if (tables.size() != 1) {
         LOG_WARN("invalid. I do not know the attr's table. attr=%s", relation_attr.attribute_name.c_str());
         return RC::SCHEMA_FIELD_MISSING;

@@ -55,6 +55,12 @@ public:
   {
     cells_.push_back(cell);
   }
+  void append_cell(const char* table, const char *field,const AggrOp aggr){
+    append_cell(TupleCellSpec(table,field,nullptr,aggr));
+  }//my2
+  void append_cell(const char *alias,const AggrOp aggr){
+    append_cell(TupleCellSpec(alias,aggr));
+  }//my2
   void append_cell(const char *table, const char *field)
   {
     append_cell(TupleCellSpec(table, field));
