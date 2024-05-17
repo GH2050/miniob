@@ -39,6 +39,7 @@ enum class LogicalOperatorType
   JOIN,       ///< 连接
   INSERT,     ///< 插入
   DELETE,     ///< 删除，删除可能会有子查询
+  UPDATE,     ///< 更新//my3 指导书未写明  
   EXPLAIN,    ///< 查看执行计划
   Aggregate   ///< 聚合//my2 指导书未写明
 };

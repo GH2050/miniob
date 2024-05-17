@@ -31,6 +31,10 @@ std::string physical_operator_type_name(PhysicalOperatorType type)
       return "INSERT";
     case PhysicalOperatorType::DELETE:
       return "DELETE";
+    case PhysicalOperatorType::AGGREGATE://my2
+      return "AGGREGATE";
+    case PhysicalOperatorType::UPDATE://my3
+      return "UPDATE";
     case PhysicalOperatorType::PROJECT:
       return "PROJECT";
     case PhysicalOperatorType::STRING_LIST:
