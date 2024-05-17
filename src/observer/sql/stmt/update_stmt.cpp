@@ -13,6 +13,10 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "sql/stmt/update_stmt.h"
+#include "common/log/log.h"
+#include "storage/db/db.h"
+#include "sql/stmt/filter_stmt.h"
+#include "sql/parser/parse_defs.h"
 #include "storage/table/table.h"//my3all
 
 

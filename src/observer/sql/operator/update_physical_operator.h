@@ -19,7 +19,7 @@ public:
 
   PhysicalOperatorType type() const override
   {
-    return PhysicalOperatorType::INSERT;
+    return PhysicalOperatorType::UPDATE;
   }
 
   RC open(Trx *trx) override;

@@ -435,6 +435,17 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
   return rc;
 }
 
+RC Table::update_record(Record &record, int offset, int len, Value &value)//my3
+{
+  RC rc = RC::SUCCESS;
+  rc = record_handler_->update_record(&record.rid(), offset, len, value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to update record:%s",strrc(rc));
+    return rc;
+  }
+  return RC::SUCCESS;
+}
+
 RC Table::delete_record(const Record &record)
 {
   RC rc = RC::SUCCESS;

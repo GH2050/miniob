@@ -181,6 +181,8 @@ public:
    */
   RC delete_record(const RID *rid);
 
+  RC update_record(RID *rid, int offset, int len, Value &value);//my3
+
   /**
    * @brief 获取指定位置的记录数据
    *
@@ -283,6 +285,8 @@ public:
    * @param rid         要插入记录的指定标识符
    */
   RC recover_insert_record(const char *data, int record_size, const RID &rid);
+
+  RC update_record(RID*rid, int offset, int len, Value &value);//my3
 
   /**
    * @brief 获取指定文件中标识符为rid的记录内容到rec指向的记录结构中

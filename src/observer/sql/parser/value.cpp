@@ -263,7 +263,7 @@ int Value::get_date() const
   case DATES:
     return num_value_.int_value_;
   default:
-    LOG_WARN("unknown data type. type=\d", attr_type_);
+    LOG_WARN("unknown data type. type=%d", attr_type_);
     return 0;
   }
   return 0;
