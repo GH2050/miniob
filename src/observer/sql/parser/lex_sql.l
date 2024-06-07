@@ -116,6 +116,8 @@ INT                                     RETURN_TOKEN(INT_T);
 CHAR                                    RETURN_TOKEN(STRING_T);
 FLOAT                                   RETURN_TOKEN(FLOAT_T);
 DATE                                    RETURN_TOKEN(DATE_T);/*//my1*/
+INNER                                   RETURN_TOKEN(INNER);/*//my4*/
+JOIN                                    RETURN_TOKEN(JOIN);/*//my4*/
 LOAD                                    RETURN_TOKEN(LOAD);
 DATA                                    RETURN_TOKEN(DATA);
 INFILE                                  RETURN_TOKEN(INFILE);

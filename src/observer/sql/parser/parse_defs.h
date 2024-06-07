@@ -144,6 +144,16 @@ struct DeleteSqlNode
 };
 
 /**
+ * @brief 用于处理join运算
+ * @ingroup SQLParser
+ */
+struct JoinSqlNode //my4
+{
+  std::vector<std::string>      relations;     ///< join的表
+  std::vector<ConditionSqlNode> conditions;    ///< on的条件
+};
+
+/**
  * @brief 描述一个update语句
  * @ingroup SQLParser
  */

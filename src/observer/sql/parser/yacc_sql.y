@@ -55,6 +55,8 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 
 //标识tokens
 %token  SEMICOLON
+        INNER//my4
+        JOIN
         SUM_F//my2
         MIN_F
         MAX_F
@@ -117,6 +119,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   AttrInfoSqlNode *                 attr_info;
   Expression *                      expression;
   std::vector<Expression *> *       expression_list;
+  JoinSqlNode *                     join_sql_node;//my4
   std::vector<Value> *              value_list;
   std::vector<ConditionSqlNode> *   condition_list;
   std::vector<RelAttrSqlNode> *     rel_attr_list;
@@ -145,6 +148,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 %type <rel_attr>            rel_attr_aggr//my2 指导书未涉及
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
+%type <join_sql_node>       join_list//my4 指导书未提及
 %type <value_list>          value_list
 %type <condition_list>      where
 %type <condition_list>      condition_list
@@ -435,7 +439,7 @@ update_stmt:      /*  update 语句的语法解析树*/
       free($4);
     }
     ;
-select_stmt:        /*  select 语句的语法解析树*/
+/* select_stmt:        //select 语句的语法解析树
     SELECT select_attr FROM ID rel_list where
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
@@ -456,7 +460,62 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
       free($4);
     }
+    ; */
+select_stmt:        /*  select 语句的语法解析树*/
+    SELECT select_attr FROM ID rel_list join_list where
+    {
+      $$ = new ParsedSqlNode(SCF_SELECT);
+      if ($2 != nullptr) {
+        $$->selection.attributes.swap(*$2);
+        delete $2;
+      }
+      if ($5 != nullptr) {
+        $$->selection.relations.swap(*$5);
+        delete $5;
+      }
+      $$->selection.relations.push_back($4);
+      std::reverse($$->selection.relations.begin(), $$->selection.relations.end());
+
+      if ($7 != nullptr) {
+        $$->selection.conditions.swap(*$7);
+        delete $7;
+      }
+      free($4);
+
+      if($6 != nullptr){
+        $$->selection.relations.insert($$->selection.relations.end(),$6->relations.begin(),$6->relations.end());
+        $$->selection.conditions.insert($$->selection.conditions.end(),$6->conditions.begin(),$6->conditions.end());
+        delete $6;
+      }
+    }
     ;
+
+join_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | INNER join_list {
+      $$ = $2;
+    }
+    | JOIN ID ON condition_list join_list {
+      $$ = new JoinSqlNode();
+
+      if ($4 != nullptr) {
+        $$->conditions.swap(*$4);
+        delete $4;
+      }
+
+      $$->relations.push_back($2);
+      free($2);
+
+      if ($5 != nullptr) {
+        $$->relations.insert($$->relations.end(), $5->relations.begin(), $5->relations.end());
+        $$->conditions.insert($$->conditions.end(), $5->conditions.begin(), $5->conditions.end());
+        delete $5;
+      }
+    }
+
 calc_stmt:
     CALC expression_list
     {
